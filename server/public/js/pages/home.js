@@ -3,11 +3,13 @@ import { h, useState, useEffect, useMemo } from "../shared.js";
 import { Button, Card, BottomNav, IconSearch, IconFilter, Badge } from "../shared.js";
 import { requireAuth } from "../auth.js";
 import { api } from "../api.js";
-import { loadWithCache } from "../store.js";
+import { loadWithCache, cacheSet } from "../store.js";
 
 if (!requireAuth()) {
   throw new Error("redirecting to login");
 }
+
+const POLL_MS = 6000;
 
 function timeAgo(iso) {
   if (!iso) return "never";
@@ -35,6 +37,19 @@ function HomePage() {
         setCachedAt(new Date().toISOString());
       },
     }).catch(() => {});
+
+    // Keep polling after the initial load so bay availability stays current
+    // without the driver having to pull-to-refresh or relaunch the app.
+    const id = setInterval(() => {
+      api.getBays()
+        .then((data) => {
+          cacheSet("bays", data);
+          setBays(data);
+          setCachedAt(new Date().toISOString());
+        })
+        .catch(() => {});
+    }, POLL_MS);
+    return () => clearInterval(id);
   }, []);
 
   const filtered = useMemo(() => {

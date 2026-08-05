@@ -4,6 +4,7 @@ import { Button, Card, Header, ErrorBanner, IconMapPin, IconClock } from "../sha
 import { requireAuth, currentVehicles } from "../auth.js";
 import { api } from "../api.js";
 import { queueOutbox } from "../store.js";
+import { notifySuccess, notifyError, notifyInfo } from "../toast.js";
 
 if (!requireAuth()) {
   throw new Error("redirecting to login");
@@ -34,6 +35,10 @@ function ReservePage() {
 
   useEffect(() => {
     api.getBays().then(setBays).catch(() => {});
+    const id = setInterval(() => {
+      api.getBays().then(setBays).catch(() => {});
+    }, 6000);
+    return () => clearInterval(id);
   }, []);
 
   const vehicle = vehicles.find((v) => v.plateNumber === plateNumber);
@@ -53,6 +58,7 @@ function ReservePage() {
     try {
       const reservation = await api.createReservation(payload);
       sessionStorage.setItem("parkline_last_reservation", JSON.stringify(reservation));
+      notifySuccess("Reservation confirmed.");
       location.href = "reservation.html";
     } catch (err) {
       if (err.offline) {
@@ -61,10 +67,12 @@ function ReservePage() {
           "parkline_last_reservation",
           JSON.stringify({ ...payload, id: `pending-${Date.now()}`, userName: "", status: "active", pendingSync: true })
         );
+        notifyInfo("You're offline — this reservation will sync once you're back online.");
         location.href = "reservation.html";
         return;
       }
       setError(err.message);
+      notifyError(err.message);
       setLoading(false);
     }
   }

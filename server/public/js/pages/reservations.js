@@ -4,10 +4,13 @@ import { Button, Card, BottomNav, Badge, IconList } from "../shared.js";
 import { requireAuth } from "../auth.js";
 import { api } from "../api.js";
 import { loadWithCache, queueOutbox } from "../store.js";
+import { notifySuccess, notifyError, notifyInfo } from "../toast.js";
 
 if (!requireAuth()) {
   throw new Error("redirecting to login");
 }
+
+const POLL_MS = 6000;
 
 function fmt(iso) {
   return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
@@ -24,6 +27,13 @@ function ReservationsPage() {
       onCache: setReservations,
       onFresh: setReservations,
     }).catch(() => {});
+
+    // Picks up status changes made elsewhere (e.g. the edge marking a
+    // reservation completed after the driver leaves) without a manual reload.
+    const id = setInterval(() => {
+      api.listReservations().then(setReservations).catch(() => {});
+    }, POLL_MS);
+    return () => clearInterval(id);
   }, []);
 
   async function cancel(id) {
@@ -31,10 +41,14 @@ function ReservationsPage() {
     try {
       await api.setReservationStatus(id, "cancelled");
       setReservations((rows) => rows.map((r) => (r.id === id ? { ...r, status: "cancelled" } : r)));
+      notifySuccess("Reservation cancelled.");
     } catch (err) {
       if (err.offline) {
         queueOutbox("cancelReservation", { id });
         setReservations((rows) => rows.map((r) => (r.id === id ? { ...r, status: "cancelled" } : r)));
+        notifyInfo("You're offline — this will sync once you're back online.");
+      } else {
+        notifyError(err.message || "Failed to cancel reservation.");
       }
     } finally {
       setBusyId(null);

@@ -2,10 +2,23 @@ services:
   - type: web
     name: parkline-client
     runtime: node
+    # NOTE: Render disks require a paid instance type -- free-plan services
+    # cannot attach one, so this `disk:` block is inert (and Render will
+    # reject this blueprint) until `plan` below is changed to `starter` or
+    # higher. Until that upgrade happens, server/data/*.json still lives on
+    # the ephemeral container filesystem and is wiped on every redeploy and
+    # every free-tier idle spin-down -- this is what was making registered
+    # users/reservations disappear. Bump `plan` to actually fix that.
     plan: free
     rootDir: server
     buildCommand: npm install
     startCommand: node server.js
+    disk:
+      name: parkline-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: NODE_VERSION
         value: 20
+      - key: DATA_DIR
+        value: /var/data

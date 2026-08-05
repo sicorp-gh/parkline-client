@@ -1,7 +1,11 @@
 const fs = require("fs");
 const path = require("path");
 
-const DATA_DIR = path.join(__dirname, "..", "data");
+// DATA_DIR override lets Render (or any host without a writable/persistent
+// project directory) point this at a mounted disk instead of the repo-local
+// folder, which is wiped on every redeploy/restart since it's gitignored and
+// otherwise lives on the ephemeral container filesystem.
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "..", "data");
 
 const COLLECTIONS = {
   users: "users.json",

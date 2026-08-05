@@ -6,6 +6,7 @@ const vehicleRoutes = require("./routes/vehicles");
 const reservationRoutes = require("./routes/reservations");
 const parkingRoutes = require("./routes/parking");
 const syncRoutes = require("./routes/sync");
+const notificationRoutes = require("./routes/notifications");
 
 const app = express();
 app.use(express.json());
@@ -22,6 +23,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/parking", parkingRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Same-origin static frontend -- express.static serves public/index.html for
 // GET / automatically, and every other page (login.html, home.html, ...) by

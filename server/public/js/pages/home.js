@@ -4,10 +4,13 @@ import { Button, Card, BottomNav, IconSearch, IconFilter, Badge } from "../share
 import { requireAuth } from "../auth.js";
 import { api } from "../api.js";
 import { loadWithCache, cacheSet } from "../store.js";
+import { startEntranceNotifications } from "../entranceNotify.js";
 
 if (!requireAuth()) {
   throw new Error("redirecting to login");
 }
+
+startEntranceNotifications();
 
 const POLL_MS = 1000;
 

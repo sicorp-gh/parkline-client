@@ -60,4 +60,6 @@ export const api = {
     request(`/reservations/${id}`, { method: "PATCH", auth: true, body: JSON.stringify({ status }) }),
 
   getBays: () => request("/parking/bays"),
+
+  myAccessEvents: () => request("/notifications/access-events", { auth: true }),
 };

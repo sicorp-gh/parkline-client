@@ -8,6 +8,7 @@
 // Add a shared secret before this ever runs somewhere untrusted can reach it.
 
 const express = require("express");
+const crypto = require("crypto");
 const db = require("../lib/db");
 
 const router = express.Router();
@@ -101,12 +102,15 @@ router.post("/sync/client-delete", async (req, res) => {
 });
 
 router.post("/sync/access-event", async (req, res) => {
-  const { plate_number, action, reason, timestamp } = req.body || {};
+  const { plate_number, action, reason, user_name, bay_label, timestamp } = req.body || {};
   if (!action) return res.status(400).json({ error: "action is required" });
 
   const events = db.readAll("accessEvents");
   events.unshift({
+    id: crypto.randomUUID(),
     plateNumber: plate_number || null,
+    userName: user_name || null,
+    bayLabel: bay_label || null,
     action,
     reason: reason || null,
     timestamp: timestamp || new Date().toISOString(),

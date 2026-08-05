@@ -1,0 +1,13 @@
+{
+  "name": "parkline-client-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Parkline driver app: cloud backend (JSON-file storage) + static frontend, served together as one Express app.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

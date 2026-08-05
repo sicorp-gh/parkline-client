@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Parkline</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .pk-splash { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+    .pk-splash img { width: 64px; height: 64px; border-radius: 16px; }
+  </style>
+</head>
+<body>
+  <div class="pk-shell">
+    <div class="pk-splash">
+      <img src="assets/logo.png" alt="Parkline" />
+      <div class="pk-spinner"></div>
+    </div>
+  </div>
+  <script type="module">
+    import { getToken } from "./js/auth.js";
+    location.replace(getToken() ? "home.html" : "login.html");
+  </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
-// The four endpoints admin/api's cloud_sync.py already expects at CLOUD_API_URL
-// (see admin/api/app/services/cloud_sync.py). Field names/shapes here must match
-// what that code reads/sends exactly -- it's already written and won't change.
+// The endpoints admin/api's cloud_sync.py expects at CLOUD_API_URL (see
+// admin/api/app/services/cloud_sync.py). Field names/shapes here must match
+// what that code reads/sends exactly.
 //
 // Called server-to-server by the edge unit (via httpx), not from a browser, so
 // no auth is enforced here -- same posture admin/api itself takes for its
@@ -57,6 +57,18 @@ router.post("/sync/occupancy", async (req, res) => {
   bay.confidence = confidence != null ? String(confidence) : null;
   bay.lastUpdated = timestamp || new Date().toISOString();
 
+  await db.writeAll("bays", bays);
+  res.status(204).end();
+});
+
+// The edge is the sole source of truth for which bays exist -- when a slot is
+// deleted there, this removes it here too so the client app never shows a bay
+// the edge no longer tracks.
+router.post("/sync/occupancy-delete", async (req, res) => {
+  const { label } = req.body || {};
+  if (!label) return res.status(400).json({ error: "label is required" });
+
+  const bays = db.readAll("bays").filter((b) => b.label !== label);
   await db.writeAll("bays", bays);
   res.status(204).end();
 });

@@ -41,6 +41,14 @@ async function revokeSession(token) {
   await db.writeAll("sessions", sessions);
 }
 
+// Used after a password change (kick out any other device that had a
+// session) and account deactivation (kick out everyone, including this
+// device). exceptToken lets the caller's own current session survive.
+async function revokeAllSessionsForUser(userId, exceptToken = null) {
+  const sessions = db.readAll("sessions").filter((s) => s.userId !== userId || s.token === exceptToken);
+  await db.writeAll("sessions", sessions);
+}
+
 function requireAuth(req, res, next) {
   const header = req.headers.authorization || "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : null;
@@ -57,5 +65,6 @@ module.exports = {
   createSession,
   getUserIdForToken,
   revokeSession,
+  revokeAllSessionsForUser,
   requireAuth,
 };

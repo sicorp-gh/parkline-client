@@ -37,7 +37,7 @@ function ReservePage() {
     api.getBays().then(setBays).catch(() => {});
     const id = setInterval(() => {
       api.getBays().then(setBays).catch(() => {});
-    }, 6000);
+    }, 1000);
     return () => clearInterval(id);
   }, []);
 

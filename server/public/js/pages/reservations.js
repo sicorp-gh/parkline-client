@@ -55,6 +55,34 @@ function ReservationsPage() {
     }
   }
 
+  function ReservationCard(r) {
+    return h(
+      Card,
+      { key: r.id },
+      h(
+        "div",
+        { className: "pk-row", style: { marginBottom: 10 } },
+        h("strong", null, r.plateNumber),
+        h(Badge, { tone: TONE[r.status] || "muted" }, r.status.replace("_", " "))
+      ),
+      h("div", { className: "pk-list-item-sub" }, `${fmt(r.startTime)} → ${fmt(r.endTime)}`),
+      r.status === "active"
+        ? h(
+            "div",
+            { style: { marginTop: 12 } },
+            h(Button, { variant: "danger", fullWidth: false, disabled: busyId === r.id, onClick: () => cancel(r.id) }, "Cancel")
+          )
+        : null
+    );
+  }
+
+  const upcoming = (reservations || [])
+    .filter((r) => r.status === "active")
+    .sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+  const history = (reservations || [])
+    .filter((r) => r.status !== "active")
+    .sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+
   return h(
     "div",
     { className: "pk-shell" },
@@ -75,26 +103,22 @@ function ReservationsPage() {
           )
         : h(
             "div",
-            { style: { display: "flex", flexDirection: "column", gap: 12 } },
-            reservations.map((r) =>
-              h(
-                Card,
-                { key: r.id },
-                h(
-                  "div",
-                  { className: "pk-row", style: { marginBottom: 10 } },
-                  h("strong", null, r.plateNumber),
-                  h(Badge, { tone: TONE[r.status] || "muted" }, r.status.replace("_", " "))
-                ),
-                h("div", { className: "pk-list-item-sub" }, `${fmt(r.startTime)} → ${fmt(r.endTime)}`),
-                r.status === "active"
-                  ? h(
-                      "div",
-                      { style: { marginTop: 12 } },
-                      h(Button, { variant: "danger", fullWidth: false, disabled: busyId === r.id, onClick: () => cancel(r.id) }, "Cancel")
-                    )
-                  : null
-              )
+            { style: { display: "flex", flexDirection: "column", gap: 20 } },
+            h(
+              "div",
+              null,
+              h("div", { className: "pk-field-label", style: { marginBottom: 10 } }, "Upcoming"),
+              upcoming.length === 0
+                ? h("p", { className: "pk-hint" }, "No upcoming reservations.")
+                : h("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, upcoming.map(ReservationCard))
+            ),
+            h(
+              "div",
+              null,
+              h("div", { className: "pk-field-label", style: { marginBottom: 10 } }, "Parking History"),
+              history.length === 0
+                ? h("p", { className: "pk-hint" }, "No past reservations yet.")
+                : h("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, history.map(ReservationCard))
             )
           )
     ),

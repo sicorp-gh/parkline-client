@@ -44,6 +44,9 @@ export const api = {
     request("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
   logout: () => request("/auth/logout", { method: "POST", auth: true }),
   me: () => request("/auth/me", { auth: true }),
+  updateProfile: (payload) => request("/auth/me", { method: "PATCH", auth: true, body: JSON.stringify(payload) }),
+  changePassword: (payload) => request("/auth/change-password", { method: "POST", auth: true, body: JSON.stringify(payload) }),
+  deactivateAccount: (password) => request("/auth/deactivate", { method: "POST", auth: true, body: JSON.stringify({ password }) }),
 
   listVehicles: () => request("/vehicles", { auth: true }),
   addVehicle: (payload) =>

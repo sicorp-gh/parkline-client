@@ -34,10 +34,18 @@ router.get("/reservations/active", (req, res) => {
 router.get("/users/registered", (req, res) => {
   const users = db.readAll("users");
   const byId = new Map(users.map((u) => [u.id, u]));
-  const registered = db.readAll("vehicles").map((v) => ({
-    plate_number: v.plateNumber,
-    user_name: byId.get(v.userId)?.name || "",
-  }));
+  const registered = db
+    .readAll("vehicles")
+    // A deactivated account's vehicles must stop being "registered" -- this
+    // is what makes account deactivation actually reach the edge: they drop
+    // out of this list, and cloud_sync's pull-side pruning (which already
+    // deletes any RegisteredUser row no longer reported here) removes them
+    // from the edge cache on the very next cycle.
+    .filter((v) => byId.get(v.userId)?.active !== false)
+    .map((v) => ({
+      plate_number: v.plateNumber,
+      user_name: byId.get(v.userId)?.name || "",
+    }));
   res.json(registered);
 });
 

@@ -9,7 +9,7 @@ if (!requireAuth()) {
   throw new Error("redirecting to login");
 }
 
-const POLL_MS = 6000;
+const POLL_MS = 1000;
 
 function timeAgo(iso) {
   if (!iso) return "never";

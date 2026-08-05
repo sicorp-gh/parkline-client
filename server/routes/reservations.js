@@ -35,6 +35,24 @@ router.post("/", async (req, res) => {
     return res.status(400).json({ error: "startTime must be before endTime" });
   }
 
+  // Two ranges [s1,e1) and [s2,e2) overlap iff s1 < e2 && s2 < e1 -- catches
+  // identical, partially-overlapping, and fully-nested time ranges alike.
+  // Only checked when a specific bay was requested; "no preference"
+  // reservations aren't tied to a bay so there's nothing to conflict on here.
+  if (bayId) {
+    const conflict = db
+      .readAll("reservations")
+      .find((r) =>
+        r.bayId === bayId &&
+        r.status === "active" &&
+        new Date(r.startTime) < end &&
+        start < new Date(r.endTime)
+      );
+    if (conflict) {
+      return res.status(409).json({ error: `Bay '${bayId}' is already reserved for part of that time range` });
+    }
+  }
+
   const user = db.readAll("users").find((u) => u.id === req.userId);
 
   const reservation = {

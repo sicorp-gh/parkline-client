@@ -73,6 +73,25 @@ router.post("/sync/occupancy-delete", async (req, res) => {
   res.status(204).end();
 });
 
+// Admin deleted this driver's plate on the edge dashboard -- remove the
+// matching vehicle (so it drops out of /api/users/registered) and any
+// reservations tied to that plate. Does not touch the user account itself:
+// a plate is one vehicle, and the same driver may have others registered.
+router.post("/sync/client-delete", async (req, res) => {
+  const { plate_number } = req.body || {};
+  if (!plate_number) return res.status(400).json({ error: "plate_number is required" });
+
+  const plate = String(plate_number).trim().toUpperCase();
+
+  const vehicles = db.readAll("vehicles").filter((v) => v.plateNumber !== plate);
+  await db.writeAll("vehicles", vehicles);
+
+  const reservations = db.readAll("reservations").filter((r) => r.plateNumber !== plate);
+  await db.writeAll("reservations", reservations);
+
+  res.status(204).end();
+});
+
 router.post("/sync/access-event", async (req, res) => {
   const { plate_number, action, reason, timestamp } = req.body || {};
   if (!action) return res.status(400).json({ error: "action is required" });

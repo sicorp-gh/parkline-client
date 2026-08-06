@@ -1,9 +1,11 @@
 // Polls for entrance activity on the logged-in driver's own plates and
 // surfaces it as a toast: reservation match ("Welcome, your reserved slot is
-// X"), walk-in grant ("Welcome!"), or registered-but-full ("Sorry, no
-// vacancy"). No push infra here (this is a plain polling web app, not a
-// native app with background push) -- this only fires while the page this
-// is started from is open in the foreground.
+// X"), walk-in grant ("Welcome! Please park in slot X" -- the edge unit
+// randomly assigns a vacant bay to walk-ins, see admin/api's
+// access_control.py), or registered-but-full ("Sorry, no vacancy"). No push
+// infra here (this is a plain polling web app, not a native app with
+// background push) -- this only fires while the page this is started from
+// is open in the foreground.
 import { api } from "./api.js";
 import { notifySuccess, notifyError } from "./toast.js";
 
@@ -13,6 +15,9 @@ function describe(e) {
   if (e.action === "granted") {
     if (e.reason === "reservation_match") {
       return { ok: true, message: e.bayLabel ? `Welcome! Your reserved slot is ${e.bayLabel}.` : "Welcome! Your reservation is confirmed." };
+    }
+    if (e.reason === "walk_in") {
+      return { ok: true, message: e.bayLabel ? `Welcome! Please park in slot ${e.bayLabel}.` : "Welcome!" };
     }
     return { ok: true, message: "Welcome!" };
   }
